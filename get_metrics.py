@@ -2,16 +2,18 @@
 
 import argparse
 import os
-import time
 from datetime import date, timedelta
 from typing import Generator
 
 import pandas as pd
 import requests
 import yaml
+from more_itertools import chunked
 
-BASE_URL = "https://***REMOVED***/api/v2/data/user/{user}/leaderboard"
+BASE_URL = "https://***REMOVED***/api/v2/data/{mtype}/leaderboard"
 APIKEY = os.environ["APIKEY"]
+
+metric_type = {"editor": "user", "qc": "reviewer"}
 
 
 def argparsing() -> argparse.Namespace:
@@ -26,6 +28,13 @@ def argparsing() -> argparse.Namespace:
         type=date.fromisoformat,
         default=date.today(),
         help="The end of the date range you wish to check.",
+    )
+    parser.add_argument(
+        "--metric-type",
+        type=str.lower,
+        choices=["editor", "qc"],
+        default="editor",
+        help="Which type of metrics to get: editor or QC. Defaults to editor.",
     )
 
     return parser.parse_args()
@@ -60,6 +69,8 @@ for username, user in ids.items():
         time.sleep(1)
     series_of_series.append(daily_tasks)
 
+    with opts.ids.open() as f:
+        ids = yaml.safe_load(f.read())
 df = pd.DataFrame(series_of_series)
 
 df.to_excel(
