@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Generator
 
+import keyring
 import pandas as pd
 import requests
 import yaml
 from more_itertools import chunked
 
 BASE_URL = "https://***REMOVED***/api/v2/data/{mtype}/leaderboard"
-APIKEY = os.environ["APIKEY"]
+APIKEY = keyring.get_password("maproulette", "")
 
 metric_type = {"editor": "user", "qc": "reviewer"}
 
@@ -52,7 +52,7 @@ def daterange(start_date: date, end_date: date) -> Generator[date, None, None]:
         yield start_date + timedelta(n)
 
 
-if __name__ == "__main__":
+def main():
     opts = argparsing()
 
     with opts.ids.open() as f:
@@ -77,12 +77,12 @@ if __name__ == "__main__":
                 record["name"]: record["completedTasks"] for record in r.json()
             }
             completed_tasks |= page_tasks
+
         the_series = pd.Series(completed_tasks)
         the_series.name = day
         series_of_series.append(the_series)
 
-    df = pd.DataFrame(series_of_series)
-    df = df.transpose()
+    df = pd.DataFrame(series_of_series).transpose()
     df.fillna(0, inplace=True)
 
     try:
@@ -95,3 +95,7 @@ if __name__ == "__main__":
                 df.to_excel(f)
         else:
             print("Save aborted.")
+
+
+if __name__ == "__main__":
+    main()
