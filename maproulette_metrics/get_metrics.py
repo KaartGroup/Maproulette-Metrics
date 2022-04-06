@@ -24,7 +24,9 @@ def argparsing() -> argparse.Namespace:
         type=Path,
         help="The path to a yaml file containing usernames and their MR ids",
     )
-    parser.add_argument("output", type=Path, help="Where to save the output file.")
+    parser.add_argument(
+        "output", type=xlsx_corrector, help="Where to save the output file."
+    )
     parser.add_argument(
         "start",
         type=date.fromisoformat,
@@ -50,6 +52,14 @@ def argparsing() -> argparse.Namespace:
 def daterange(start_date: date, end_date: date) -> Generator[date, None, None]:
     for n in range((end_date - start_date).days):
         yield start_date + timedelta(n)
+
+
+def xlsx_corrector(raw_path: str | Path) -> Path:
+    """
+    Fixes mistyped or missing xlsx extensions
+    """
+    raw_path = Path(raw_path)
+    return raw_path.with_suffix(".xlsx")
 
 
 def main():
@@ -86,12 +96,12 @@ def main():
     df.fillna(0, inplace=True)
 
     try:
-        with opts.output.open("x") as f:
+        with opts.output.open("xb") as f:
             df.to_excel(f)
     except FileExistsError:
         response = input(f"{opts.output} exists. Do you want to overwrite? N/y: ")
         if response.lower().startswith("y"):
-            with opts.output.open("w") as f:
+            with opts.output.open("wb") as f:
                 df.to_excel(f)
         else:
             print("Save aborted.")
