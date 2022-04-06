@@ -13,6 +13,7 @@ from more_itertools import chunked
 
 BASE_URL = "https://***REMOVED***/api/v2/data/{mtype}/leaderboard"
 APIKEY = keyring.get_password("maproulette", "")
+PAGE_LIMIT = 50
 
 metric_type = {"editor": "user", "qc": "reviewer"}
 
@@ -64,21 +65,22 @@ def xlsx_corrector(raw_path: str | Path) -> Path:
 
 def main():
     opts = argparsing()
+    mtype = metric_type[opts.metric_type]
 
     with opts.ids.open() as f:
         ids = yaml.safe_load(f.read())
 
-    series_of_series = []
+    all_days = []
     for day in daterange(opts.start, opts.end + timedelta(1)):
-        completed_tasks = {}
-        for page in chunked(ids.values(), 50):
+        all_tasks = {}
+        for page in chunked(ids.values(), PAGE_LIMIT):
             r = requests.get(
-                BASE_URL.format(mtype=metric_type[opts.metric_type]),
+                BASE_URL.format(mtype=mtype),
                 headers={"apikey": APIKEY},
                 params={
                     "start": day.isoformat(),
-                    "end": (day).isoformat(),
-                    "limit": 50,
+                    "end": day.isoformat(),
+                    "limit": PAGE_LIMIT,
                     "userIds": ",".join(page),
                 },
                 verify=False,
@@ -86,13 +88,15 @@ def main():
             page_tasks = {
                 record["name"]: record["completedTasks"] for record in r.json()
             }
-            completed_tasks |= page_tasks
+            all_tasks |= page_tasks
 
-        the_series = pd.Series(completed_tasks)
+        the_series = pd.Series(all_tasks)
         the_series.name = day
-        series_of_series.append(the_series)
+        all_days.append(the_series)
 
-    df = pd.DataFrame(series_of_series).transpose()
+    # Creating a DataFrame this way results in dates along left axis and users along top,
+    # hence the transpose
+    df = pd.DataFrame(all_days).transpose()
     df.fillna(0, inplace=True)
 
     try:
