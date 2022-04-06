@@ -5,7 +5,14 @@ setuptools.setup(
     version="0.0.1",
     packages=["maproulette_metrics"],
     python_requires=">=3.10",
-    install_requires=["pandas", "requests", "pyyaml", "more_itertools", "keyring"],
+    install_requires=[
+        "pandas",
+        "requests",
+        "pyyaml",
+        "more_itertools",
+        "keyring",
+        "openpyxl",
+    ],
     entry_points={
         "console_scripts": [
             "get_maproulette_metrics = maproulette_metrics.get_metrics:main",
