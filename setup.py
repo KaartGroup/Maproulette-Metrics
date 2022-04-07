@@ -11,7 +11,7 @@ setuptools.setup(
         "pyyaml",
         "more_itertools",
         "keyring",
-        "openpyxl",
+        "xlsxwriter",
     ],
     entry_points={
         "console_scripts": [

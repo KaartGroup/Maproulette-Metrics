@@ -63,6 +63,24 @@ def xlsx_corrector(raw_path: str | Path) -> Path:
     return raw_path.with_suffix(".xlsx")
 
 
+def write_excel(df: pd.DataFrame, location: Path) -> None:
+    with pd.ExcelWriter(
+        location, engine="xlsxwriter", date_format="MM/DD/YY"
+    ) as writer:
+        df.to_excel(writer, index=True, freeze_panes=(1, 1))
+
+        sheet = next(iter(writer.sheets.values()))
+
+        for col_idx, (colname, column) in enumerate(df.reset_index().items()):
+            colwidth = max(column.astype(str).str.len().max(), 8)
+            sheet.set_column(col_idx, col_idx, colwidth)
+
+
+def overwrite_confirm(location: Path) -> bool:
+    response = input(f"{location} exists. Do you want to overwrite? N/y: ")
+    return response.lower().startswith("y")
+
+
 def main():
     opts = argparsing()
     mtype = metric_type[opts.metric_type]
@@ -99,16 +117,11 @@ def main():
     df = pd.DataFrame(all_days).transpose()
     df.fillna(0, inplace=True)
 
-    try:
-        with opts.output.open("xb") as f:
-            df.to_excel(f)
-    except FileExistsError:
-        response = input(f"{opts.output} exists. Do you want to overwrite? N/y: ")
-        if response.lower().startswith("y"):
-            with opts.output.open("wb") as f:
-                df.to_excel(f)
-        else:
-            print("Save aborted.")
+    location: Path = opts.output
+    if location.is_file() and not overwrite_confirm(location):
+        print("Save aborted.")
+        return
+    write_excel(df, opts.output)
 
 
 if __name__ == "__main__":
