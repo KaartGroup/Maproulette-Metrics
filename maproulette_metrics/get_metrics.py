@@ -64,15 +64,13 @@ def xlsx_corrector(raw_path: str | Path) -> Path:
 
 
 def write_excel(df: pd.DataFrame, location: Path) -> None:
-    with pd.ExcelWriter(
-        location, engine="xlsxwriter", date_format="MM/DD/YY"
-    ) as writer:
+    with pd.ExcelWriter(location, engine="xlsxwriter", date_format="MMM D") as writer:
         df.to_excel(writer, index=True, freeze_panes=(1, 1))
 
         sheet = next(iter(writer.sheets.values()))
 
         for col_idx, (colname, column) in enumerate(df.reset_index().items()):
-            colwidth = max(column.astype(str).str.len().max(), 8)
+            colwidth = max(column.astype(str).str.len().max(), 6)
             sheet.set_column(col_idx, col_idx, colwidth)
 
 
