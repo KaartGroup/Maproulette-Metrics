@@ -90,14 +90,25 @@ def main():
 
     all_days = []
     for day in daterange(opts.start, opts.end + timedelta(1)):
+        start = end = day
+        if day.weekday() == 0:
+            # Monday, include prior Sunday's stats because of timezone difference
+            start -= timedelta(1)
+        elif day.weekday() == 4:
+            # Friday, include following Saturday's stats because of timezone difference
+            end += timedelta(1)
+        elif day.weekday() >= 5:
+            # Weekend; stats are included in days before and after, so we don't check these on their own
+            continue
+
         all_tasks = {}
         for page in chunked(ids.values(), PAGE_LIMIT):
             r = requests.get(
                 BASE_URL.format(mtype=mtype),
                 headers={"apikey": APIKEY},
                 params={
-                    "start": day.isoformat(),
-                    "end": day.isoformat(),
+                    "start": start.isoformat(),
+                    "end": end.isoformat(),
                     "limit": PAGE_LIMIT,
                     "userIds": ",".join(page),
                 },
