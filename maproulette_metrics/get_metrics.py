@@ -91,7 +91,7 @@ def main():
     with opts.ids.open() as f:
         ids = yaml.safe_load(f.read())
 
-    all_days = []
+    df = pd.DataFrame(index=ids.keys())
     for day in daterange(opts.start, opts.end + timedelta(1)):
         start = end = day
         if day.weekday() == 0:
@@ -104,8 +104,8 @@ def main():
             # Weekend; stats are included in days before and after, so we don't check these on their own
             continue
 
-        all_tasks = {}
-        for page in chunked(ids.values(), PAGE_LIMIT):
+        day_tasks = {}
+        for user_page in chunked(ids.values(), PAGE_LIMIT):
             r = requests.get(
                 BASE_URL.format(mtype=mtype),
                 headers={"apikey": APIKEY},
@@ -113,23 +113,21 @@ def main():
                     "start": start.isoformat(),
                     "end": end.isoformat(),
                     "limit": PAGE_LIMIT,
-                    "userIds": ",".join(page),
+                    "userIds": ",".join(user_page),
                 },
                 verify=False,
             )
             page_tasks = {
                 record["name"]: record["completedTasks"] for record in r.json()
             }
-            all_tasks |= page_tasks
+            day_tasks |= page_tasks
 
-        the_series = pd.Series(all_tasks)
+        the_series = pd.Series(day_tasks)
         the_series.name = day
-        all_days.append(the_series)
+        df = pd.concat([df, the_series], axis=1)
 
-    # Creating a DataFrame this way results in dates along left axis and users along top,
-    # hence the transpose
-    df = pd.DataFrame(all_days).transpose()
     df.fillna(0, inplace=True)
+    df.sort_index(inplace=True)
 
     location: Path = opts.output
     if not opts.overwrite and location.is_file() and not overwrite_confirm(location):
