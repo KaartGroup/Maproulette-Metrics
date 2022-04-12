@@ -46,6 +46,11 @@ def argparsing() -> argparse.Namespace:
         default="editor",
         help="Which type of metrics to get: editor or QC. Defaults to editor.",
     )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="If used, will overwrite existing files without asking.",
+    )
 
     return parser.parse_args()
 
@@ -127,7 +132,7 @@ def main():
     df.fillna(0, inplace=True)
 
     location: Path = opts.output
-    if location.is_file() and not overwrite_confirm(location):
+    if not opts.overwrite and location.is_file() and not overwrite_confirm(location):
         print("Save aborted.")
         return
     write_excel(df, opts.output)
