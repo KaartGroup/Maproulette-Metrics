@@ -57,7 +57,7 @@ def argparsing() -> argparse.Namespace:
 
 def daterange(start_date: date, end_date: date) -> Generator[date, None, None]:
     for n in range((end_date - start_date).days):
-        yield start_date + timedelta(n)
+        yield start_date + timedelta(days=n)
 
 
 def xlsx_corrector(raw_path: str | Path) -> Path:
@@ -92,14 +92,14 @@ def main():
         ids = yaml.safe_load(f.read())
 
     df = pd.DataFrame(index=ids.keys())
-    for day in daterange(opts.start, opts.end + timedelta(1)):
+    for day in daterange(opts.start, opts.end + timedelta(days=1)):
         start = end = day
         if day.weekday() == 0:
             # Monday, include prior Sunday's stats because of timezone difference
-            start -= timedelta(1)
+            start -= timedelta(days=1)
         elif day.weekday() == 4:
             # Friday, include following Saturday's stats because of timezone difference
-            end += timedelta(1)
+            end += timedelta(days=1)
         elif day.weekday() >= 5:
             # Weekend; stats are included in days before and after, so we don't check these on their own
             continue
@@ -133,7 +133,7 @@ def main():
     if not opts.overwrite and location.is_file() and not overwrite_confirm(location):
         print("Save aborted.")
         return
-    write_excel(df, opts.output)
+    write_excel(df, location=location)
 
 
 if __name__ == "__main__":
