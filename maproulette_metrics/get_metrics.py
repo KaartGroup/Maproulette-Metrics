@@ -11,6 +11,8 @@ import requests
 import yaml
 from more_itertools import chunked
 
+from maproulette_metrics.get_user_ids import get_user_ids_with_caching
+
 BASE_URL = "https://***REMOVED***/api/v2/data/{mtype}/leaderboard"
 APIKEY = keyring.get_password("maproulette", "")
 PAGE_LIMIT = 50
@@ -19,11 +21,13 @@ metric_type = {"editor": "user", "qc": "reviewer"}
 
 
 def argparsing() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="A script for checking metrics for given usernames"
+    )
     parser.add_argument(
-        "ids",
+        "users",
         type=Path,
-        help="The path to a yaml file containing usernames and their MR ids",
+        help="The path to a textfile with a list of usernames to check",
     )
     parser.add_argument(
         "output", type=xlsx_corrector, help="Where to save the output file."
@@ -31,13 +35,17 @@ def argparsing() -> argparse.Namespace:
     parser.add_argument(
         "start",
         type=date.fromisoformat,
-        help="The start of the date range you wish to check.",
+        help="The start of the date range you wish to check, in YYYY-MM-DD format.",
     )
     parser.add_argument(
-        "--end",
+        "end",
         type=date.fromisoformat,
+        nargs="?",
         default=date.today(),
-        help="The end of the date range you wish to check.",
+        help=(
+            "(optional) The end of the date range you wish to check, in YYYY-MM-DD format. "
+            "If not given, today's date will be used"
+        ),
     )
     parser.add_argument(
         "--metric-type",
@@ -88,8 +96,10 @@ def main():
     opts = argparsing()
     mtype = metric_type[opts.metric_type]
 
-    with opts.ids.open() as f:
-        ids = yaml.safe_load(f.read())
+    with opts.users.open() as f:
+        users = yaml.safe_load(f.read())
+
+    ids = get_user_ids_with_caching(users)
 
     df = pd.DataFrame(index=ids.keys())
     for day in daterange(opts.start, opts.end + timedelta(days=1)):

@@ -6,11 +6,12 @@ setuptools.setup(
     packages=["maproulette_metrics"],
     python_requires=">=3.10",
     install_requires=[
-        "pandas",
-        "requests",
-        "pyyaml",
-        "more_itertools",
+        "appdirs",
         "keyring",
+        "more_itertools",
+        "pandas",
+        "pyyaml",
+        "requests",
         "xlsxwriter",
     ],
     entry_points={
