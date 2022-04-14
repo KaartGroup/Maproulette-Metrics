@@ -27,7 +27,7 @@ MapRoulette uses a numeric user id for each user; this is unique to each server,
 ### Using the script
 
 Run
-`get_maproulette_metrics [--metric-type {editor,qc}] users output start [end]`<br>
+`get_maproulette_metrics [--metric-type {editor,qc}] users output start [end]`
 _[Square brackets] indicate optional arguments, {curly braces} indicate mutually-exclusive choices._
 
 For example, `get_maproulette_metrics ~/Documents/sinopah.txt ~/Documents/april_03_metrics.xlsx 2022-04-03` will get metrics for all the users in the file "sinopah.txt",
