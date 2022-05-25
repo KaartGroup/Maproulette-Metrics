@@ -12,6 +12,7 @@ import yaml
 BASE_URL = "http://***REMOVED***/api/v2/users/find"
 APIKEY = keyring.get_password("maproulette", "")
 CACHE_DIR = Path(appdirs.user_cache_dir("Maproulette Metrics", "Kaart"))
+CACHE_DIR.mkdir(exist_ok=True)
 
 
 def argparsing() -> argparse.Namespace:

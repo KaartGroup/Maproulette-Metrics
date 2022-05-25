@@ -97,7 +97,7 @@ def main():
     mtype = metric_type[opts.metric_type]
 
     with opts.users.open() as f:
-        users = yaml.safe_load(f.read())
+        users = f.read().splitlines()
 
     ids = get_user_ids_with_caching(users)
 
@@ -123,7 +123,7 @@ def main():
                     "start": start.isoformat(),
                     "end": end.isoformat(),
                     "limit": PAGE_LIMIT,
-                    "userIds": ",".join(user_page),
+                    "userIds": ",".join(str(user_id) for user_id in user_page),
                 },
                 verify=False,
             )
