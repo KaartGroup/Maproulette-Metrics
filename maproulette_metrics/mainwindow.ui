@@ -11,9 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>
-				MainWindow
-			</string>
+   <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -92,7 +90,7 @@
      </widget>
     </item>
     <item row="8" column="1">
-     <widget class="QLineEditDragDrop" name="outputLineEdit"/>
+     <widget class="QLineEdit" name="outputLineEdit"/>
     </item>
     <item row="7" column="1" colspan="3">
      <widget class="QGroupBox" name="metricTypeGroup">
@@ -151,13 +149,6 @@
    </layout>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QLineEditDragDrop</class>
-   <extends>QLineEdit</extends>
-   <header>chameleon.qt.qlineeditdragdrop</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
