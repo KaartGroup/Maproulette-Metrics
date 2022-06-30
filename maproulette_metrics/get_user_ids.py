@@ -68,7 +68,11 @@ def get_user_ids_with_caching(
         cached_ids = {}
 
     # Make sure only valid user IDs in the loaded dictionary
-    cached_ids = {user: str(user_id) for user, user_id in cached_ids.items() if user_id}
+    cached_ids = {
+        user: str(user_id)
+        for user, user_id in cached_ids.items()
+        if user_id and user in users
+    }
 
     not_present = set(users) - set(cached_ids.keys())
     api_ids = get_user_ids_from_api(not_present)
