@@ -1,5 +1,7 @@
 .DS_Store
 .env
+.idea
+.qt_for_python/
 .vscode
 *.egg-info
 build/
