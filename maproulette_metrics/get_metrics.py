@@ -12,69 +12,13 @@ from more_itertools import chunked
 
 from . import BASE_URL, VERIFY_CERT
 from .get_user_ids import get_user_ids_with_caching
+from .utils import daterange
 
 API_PATH = "api/v2/data/{mtype}/leaderboard"
 APIKEY = keyring.get_password(service_name="maproulette", username="")
 PAGE_LIMIT = 50
 
 metric_type = {"editor": "user", "qc": "reviewer"}
-
-
-def argparsing() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="A script for checking metrics for given usernames"
-    )
-    parser.add_argument(
-        "users",
-        type=Path,
-        help="The path to a textfile with a list of usernames to check",
-    )
-    parser.add_argument(
-        "output", type=xlsx_corrector, help="Where to save the output file."
-    )
-    parser.add_argument(
-        "start",
-        type=date.fromisoformat,
-        help="The start of the date range you wish to check, in YYYY-MM-DD format.",
-    )
-    parser.add_argument(
-        "end",
-        type=date.fromisoformat,
-        nargs="?",
-        default=date.today(),
-        help=(
-            "(optional) The end of the date range you wish to check, in YYYY-MM-DD format. "
-            "If not given, today's date will be used"
-        ),
-    )
-    parser.add_argument(
-        "-t",
-        "--metric-type",
-        type=str.lower,
-        choices=["editor", "qc"],
-        default="editor",
-        help="Which type of metrics to get: editor or QC. Defaults to editor.",
-    )
-    parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="If used, will overwrite existing files without asking.",
-    )
-
-    return parser.parse_args()
-
-
-def daterange(start_date: date, end_date: date) -> Generator[date, None, None]:
-    for n in range((end_date - start_date).days):
-        yield start_date + timedelta(days=n)
-
-
-def xlsx_corrector(raw_path: str | Path) -> Path:
-    """
-    Fixes mistyped or missing xlsx extensions
-    """
-    raw_path = Path(raw_path)
-    return raw_path.with_suffix(".xlsx")
 
 
 def write_excel(df: pd.DataFrame, location: Path) -> None:
@@ -114,9 +58,10 @@ def get_user_page(
     return {record["name"]: record["completedTasks"] for record in r.json()}
 
 
-def main():
-    opts = argparsing()
-    mtype = metric_type[opts.metric_type]
+def get_metrics(opts: argparse.Namespace | dict):
+    if type(opts, argparse.Namespace):
+        opts = vars(opts)
+    mtype = metric_type[opts["metric_type"]]
 
     users = opts.users.read_text().splitlines()
     ids = get_user_ids_with_caching(users)
@@ -152,5 +97,5 @@ def main():
     write_excel(df, location=location)
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     get_metrics()
