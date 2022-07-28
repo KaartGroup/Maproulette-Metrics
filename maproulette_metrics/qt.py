@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 from typing import Literal
 
+import keyring
 from PySide6.QtCore import QEvent, QObject, Qt, QThread, Signal
 from PySide6.QtGui import QAction, QIcon, QKeyEvent, QPixmap
 from PySide6.QtWidgets import (
@@ -20,20 +21,46 @@ from PySide6.QtWidgets import (
     QRadioButton,
 )
 
-from maproulette_metrics import mainwindow
+from maproulette_metrics import mainwindow, set_api_key_gui
 
 
 class Worker(QObject):
     done = Signal()
 
-    def __init__(self, parent: QObject | None) -> None:
+    def __init__(self, parent) -> None:
         super().__init__(parent)
+        self.host = parent
+
+    def run(self) -> None:
+        pass
+
+
+class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
+    def __init__(self) -> None:
+        super().__init__()
+        self.setupUi(self)
+
+        self.apiKeyLineEdit.editingFinished.connect(self.run_checker)
+
+    def run_checker(self) -> None:
+        if self.apiKeyLineEdit.text().strip():
+            self.buttonBox.setEnabled(False)
+        else:
+            self.buttonBox.setEnabled(True)
+
+    def set_apikey(self) -> None:
+        pass
 
 
 class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setupUi(self)
+
+        self.apikey = keyring.get_password("maproulette", "")
+        if not self.apikey:
+            # Prompt user to set apikey
+            pass
 
         self.userAddPushButton.clicked.connect(self.add_user)
         self.userRemovePushButton.clicked.connect(self.remove_user)
@@ -68,6 +95,12 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         if output_text := self.outputLineEdit.text():
             return Path(output_text.text()).resolve()
 
+    @property
+    def args(self) -> dict:
+        return {
+            
+        }
+
     def output_file(self) -> None:
         """
         Adds functionality to the Output File (…) button, opens the
@@ -93,7 +126,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         pass
 
     def run_checker(self) -> None:
-        pass
+        all_fields_filled = any(self.users) and 
 
     def run(self) -> None:
         self.work_thread = QThread(parent=self)
