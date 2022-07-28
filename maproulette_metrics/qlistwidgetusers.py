@@ -53,11 +53,7 @@ class QListWidgetUsers(QListWidget):
         Wipes all users listed on QList with "Clear" button.
         Execute on `Clear` button signal.
         """
-        for row in (
-            self.row(item)
-            for item in self.findItems("*", Qt.MatchWildcard)
-            if item.text() not in SPECIAL_MODES
-        ):
+        for row in (self.row(item) for item in self.findItems("*", Qt.MatchWildcard)):
             self.takeItem(row)
         logger.info("Cleared user list.")
 
