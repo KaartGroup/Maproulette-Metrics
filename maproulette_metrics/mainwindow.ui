@@ -66,7 +66,7 @@
      </widget>
     </item>
     <item row="1" column="1" rowspan="4" colspan="3">
-     <widget class="QListWidget" name="userListWidget"/>
+     <widget class="QListWidgetUsers" name="userListWidget"/>
     </item>
     <item row="0" column="0" rowspan="5">
      <widget class="QLabel" name="usersLabel">
@@ -149,6 +149,13 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QListWidgetUsers</class>
+   <extends>QListWidget</extends>
+   <header>maproulette_metrics.qlistwidgetusers</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
