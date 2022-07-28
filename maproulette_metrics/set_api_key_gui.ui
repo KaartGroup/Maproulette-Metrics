@@ -15,14 +15,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="instructionLabel">
      <property name="text">
       <string>Paste your API key from MapRoulette here:</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="lineEdit"/>
+    <widget class="QLineEdit" name="apiKeyLineEdit"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
