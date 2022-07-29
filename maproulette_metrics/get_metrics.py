@@ -32,11 +32,6 @@ def write_excel(df: pd.DataFrame, location: Path) -> None:
             sheet.set_column(col_idx, col_idx, colwidth)
 
 
-def overwrite_confirm(location: Path) -> bool:
-    response = input(f"{location} exists. Do you want to overwrite? N/y: ")
-    return response.lower().startswith("y")
-
-
 def get_user_page(
     users: Iterable,
     mtype: Literal["user", "qc"],
@@ -58,16 +53,18 @@ def get_user_page(
     return {record["name"]: record["completedTasks"] for record in r.json()}
 
 
-def get_metrics(opts: argparse.Namespace | dict):
-    if type(opts, argparse.Namespace):
-        opts = vars(opts)
-    mtype = metric_type[opts["metric_type"]]
-
-    users = opts.users.read_text().splitlines()
+def get_metrics(
+    users: Iterable[str],
+    start: date,
+    end: date,
+    metric_type: Literal["editor", "qc"],
+    apikey: str,
+    **kwargs,
+) -> pd.DataFrame:
     ids = get_user_ids_with_caching(users)
 
     df = pd.DataFrame(index=ids.keys())
-    for day in daterange(opts.start, opts.end + timedelta(days=1)):
+    for day in daterange(start, end + timedelta(days=1)):
         start = end = day
         if day.weekday() == 0:
             # Monday, include prior Sunday's stats because of timezone difference
@@ -90,12 +87,4 @@ def get_metrics(opts: argparse.Namespace | dict):
     df.fillna(0, inplace=True)
     df.sort_index(inplace=True)
 
-    location: Path = opts.output
-    if not opts.overwrite and location.is_file() and not overwrite_confirm(location):
-        print("Save aborted.")
-        return
-    write_excel(df, location=location)
-
-
-# if __name__ == "__main__":
-#     get_metrics()
+    return df

@@ -21,7 +21,8 @@ from PySide6.QtWidgets import (
     QRadioButton,
 )
 
-from maproulette_metrics import mainwindow, set_api_key_gui
+from . import get_metrics, mainwindow, set_api_key_gui
+from .utils import dirname
 
 
 class Worker(QObject):
@@ -32,7 +33,7 @@ class Worker(QObject):
         self.host = parent
 
     def run(self) -> None:
-        pass
+        get_metrics.get_metrics()
 
 
 class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
@@ -58,9 +59,8 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.setupUi(self)
 
         self.apikey = keyring.get_password("maproulette", "")
-        if not self.apikey:
-            # Prompt user to set apikey
-            pass
+        # if not self.apikey:
+        # Prompt user to set apikey
 
         self.userAddPushButton.clicked.connect(self.add_user)
         self.userRemovePushButton.clicked.connect(self.remove_user)
@@ -96,9 +96,15 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
             return Path(output_text.text()).resolve()
 
     @property
-    def args(self) -> dict:
+    def opts(self) -> dict:
         return {
-            
+            "users": self.users,
+            "start": self.start_date,
+            "end": self.end_date,
+            "metric_type": self.metric_type,
+            "output": self.output_location,
+            "apikey": self.apikey,
+            "overwrite": True,
         }
 
     def output_file(self) -> None:
@@ -123,24 +129,19 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.userListWidget.add
 
     def remove_user(self) -> None:
-        pass
+        self.userListWidget
 
     def run_checker(self) -> None:
-        all_fields_filled = any(self.users) and 
+        all_fields_filled = bool(any(self.users) and self.outputLineEdit.strip())
+        self.runButton.setEnabled(all_fields_filled)
 
     def run(self) -> None:
         self.work_thread = QThread(parent=self)
         self.worker = Worker()
 
-
-def dirname(the_path: str | Path) -> Path:
-    """
-    Return the URI of the nearest directory,
-    which can be self if it is a directory
-    or else the parent
-    """
-    the_path = Path(the_path)
-    return the_path if the_path.is_dir() else the_path.parent
+        self.worker.moveToThread(self.work_thread)
+        self.work_thread.started.connect(self.worker.run)
+        self.work_thread.start()
 
 
 if __name__ == "__main__":

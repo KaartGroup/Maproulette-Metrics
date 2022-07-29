@@ -14,3 +14,13 @@ def xlsx_corrector(raw_path: str | Path) -> Path:
 def daterange(start_date: date, end_date: date) -> Generator[date, None, None]:
     for n in range((end_date - start_date).days):
         yield start_date + timedelta(days=n)
+
+
+def dirname(the_path: str | Path) -> Path:
+    """
+    Return the path of the nearest directory,
+    which can be the same as input if it is
+    already a directory or else the parent
+    """
+    the_path = Path(the_path)
+    return the_path if the_path.is_dir() else the_path.parent
