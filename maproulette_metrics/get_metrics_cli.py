@@ -2,6 +2,7 @@ import argparse
 from datetime import date
 from pathlib import Path
 
+from . import get_metrics
 from .utils import xlsx_corrector
 
 
@@ -10,7 +11,7 @@ def argparsing() -> argparse.Namespace:
         description="A script for checking metrics for given usernames"
     )
     parser.add_argument(
-        "users",
+        "user_file",
         type=Path,
         help="The path to a textfile with a list of usernames to check",
     )
@@ -46,3 +47,26 @@ def argparsing() -> argparse.Namespace:
     )
 
     return parser.parse_args()
+
+
+def main():
+    opts = vars(argparsing())
+    opts["users"] = opts.userfile.read_text().splitlines()
+    df = get_metrics.get_metrics(*opts)
+    if (
+        not opts["overwrite"]
+        and opts["output"].is_file()
+        and not overwrite_confirm(opts["output"])
+    ):
+        print("Save aborted.")
+        return
+    get_metrics.write_excel(df, location=opts["output"])
+
+
+def overwrite_confirm(location: Path) -> bool:
+    response = input(f"{location} exists. Do you want to overwrite? N/y: ")
+    return response.lower().startswith("y")
+
+
+if __name__ == "__main__":
+    main()
