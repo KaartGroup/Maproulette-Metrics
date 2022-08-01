@@ -126,10 +126,11 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
             self.outputLineEdit.insert(str(output_file_name))
 
     def add_user(self) -> None:
-        self.userListWidget.add
+        self.userListWidget.add_users_to_list(user_split(self.userAddLineEdit.text()))
+        self.userAddLineEdit.clear()
 
     def remove_user(self) -> None:
-        self.userListWidget
+        self.userListWidget.delete_user()
 
     def run_checker(self) -> None:
         all_fields_filled = bool(any(self.users) and self.outputLineEdit.strip())
@@ -142,6 +143,17 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.worker.moveToThread(self.work_thread)
         self.work_thread.started.connect(self.worker.run)
         self.work_thread.start()
+
+
+def user_split(raw_label: str) -> list[str]:
+    """
+    Splits comma- and/or space-separated values and returns sorted list
+    """
+    splitter = shlex.shlex(raw_label)
+    # Count commas as a delimiter and don't include in the users
+    splitter.whitespace += ","
+    splitter.whitespace_split = True
+    return sorted(splitter)
 
 
 if __name__ == "__main__":
