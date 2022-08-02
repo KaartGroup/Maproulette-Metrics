@@ -71,6 +71,8 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
 
         self.runButton.clicked.connect(self.run)
 
+        self.run_checker()
+
     @property
     def users(self) -> list[str]:
         return self.userListWidget.users
@@ -127,16 +129,18 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
             output_file_name = output_file_name.with_suffix(".xlsx")
             self.outputLineEdit.selectAll()
             self.outputLineEdit.insert(str(output_file_name))
+            self.run_checker()
 
     def add_user(self) -> None:
         self.userListWidget.add_users_to_list(user_split(self.userAddLineEdit.text()))
         self.userAddLineEdit.clear()
+        self.run_checker()
 
     def remove_user(self) -> None:
         self.userListWidget.delete_user()
 
     def run_checker(self) -> None:
-        all_fields_filled = bool(any(self.users) and self.outputLineEdit.strip())
+        all_fields_filled = bool(any(self.users) and self.outputLineEdit.text().strip())
         self.runButton.setEnabled(all_fields_filled)
 
     def run(self) -> None:
