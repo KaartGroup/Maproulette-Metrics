@@ -1,6 +1,6 @@
 import shlex
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -57,6 +57,9 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setupUi(self)
+
+        self.startDateEdit.setDate(date.today() - timedelta(weeks=4))
+        self.endDateEdit.setDate(date.today())
 
         self.apikey = keyring.get_password("maproulette", "")
         # if not self.apikey:
