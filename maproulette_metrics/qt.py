@@ -24,6 +24,17 @@ from PySide6.QtWidgets import (
 from . import get_metrics, mainwindow, set_api_key_gui
 from .utils import dirname
 
+try:
+    import ptvsd
+
+    ptvsd.enable_attach()
+except ImportError:
+    # logger.debug("PTVSD not imported")
+    print("PTVSD not imported")
+else:
+    # logger.debug("VSCode debug library successful.")
+    print("VSCode debug library successful.")
+
 
 class Worker(QObject):
     done = Signal()
@@ -33,6 +44,15 @@ class Worker(QObject):
         self.host = parent
 
     def run(self) -> None:
+        # For debugging in VSCode only
+        try:
+            ptvsd.debug_this_thread()
+        except (ModuleNotFoundError, NameError):
+            print("Worker thread not exposed to VSCode")
+        else:
+            # logger.debug("Worker thread successfully exposed to debugger.")
+            print("Worker thread successfully exposed to debugger.")
+
         get_metrics.get_metrics(**self.host.opts)
 
 
