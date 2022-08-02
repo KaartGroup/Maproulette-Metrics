@@ -33,7 +33,7 @@ class Worker(QObject):
         self.host = parent
 
     def run(self) -> None:
-        get_metrics.get_metrics()
+        get_metrics.get_metrics(**self.host.opts)
 
 
 class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
@@ -93,7 +93,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
     @property
     def output_location(self) -> Path | None:
         if output_text := self.outputLineEdit.text():
-            return Path(output_text.text()).resolve()
+            return Path(output_text).resolve()
 
     @property
     def opts(self) -> dict:
@@ -138,7 +138,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
 
     def run(self) -> None:
         self.work_thread = QThread(parent=self)
-        self.worker = Worker()
+        self.worker = Worker(parent=self)
 
         self.worker.moveToThread(self.work_thread)
         self.work_thread.started.connect(self.worker.run)
