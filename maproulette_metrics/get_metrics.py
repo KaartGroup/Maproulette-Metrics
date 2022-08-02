@@ -78,7 +78,7 @@ def get_metrics(
 
         day_tasks = {}
         for user_page in chunked(ids.values(), PAGE_LIMIT):
-            day_tasks |= get_user_page(user_page, mtype, start, end)
+            day_tasks |= get_user_page(user_page, metric_type, start, end)
 
         the_series = pd.Series(day_tasks)
         the_series.name = day
