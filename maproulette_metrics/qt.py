@@ -116,7 +116,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
             for radio_button in self.metricTypeGroup.findChildren(QRadioButton)
             if radio_button.isChecked()
         )
-        item_table = {self.editingRadioButton: "user", self.qcRadioButton: "reviewer"}
+        item_table = {self.editingRadioButton: "editor", self.qcRadioButton: "qc"}
         return item_table[checked_item]
 
     @property

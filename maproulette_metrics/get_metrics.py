@@ -18,7 +18,7 @@ API_PATH = "api/v2/data/{mtype}/leaderboard"
 APIKEY = keyring.get_password(service_name="maproulette", username="")
 PAGE_LIMIT = 50
 
-metric_type = {"editor": "user", "qc": "reviewer"}
+METRIC_TYPE_TABLE = {"editor": "user", "qc": "reviewer"}
 
 
 def write_excel(df: pd.DataFrame, location: Path) -> None:
@@ -61,6 +61,8 @@ def get_metrics(
     apikey: str,
     **kwargs,
 ) -> pd.DataFrame:
+    mtype = METRIC_TYPE_TABLE[metric_type]
+
     ids = get_user_ids_with_caching(users)
 
     df = pd.DataFrame(index=ids.keys())
@@ -78,7 +80,28 @@ def get_metrics(
 
         day_tasks = {}
         for user_page in chunked(ids.values(), PAGE_LIMIT):
-            day_tasks |= get_user_page(user_page, metric_type, start, end)
+            try:
+                r = requests.get(
+                    BASE_URL.format(mtype=mtype),
+                    headers={"apikey": apikey},
+                    params={
+                        "start": start.isoformat(),
+                        "end": end.isoformat(),
+                        "limit": PAGE_LIMIT,
+                        "userIds": ",".join(str(user_id) for user_id in user_page),
+                    },
+                    verify=False,
+                )
+                r.raise_for_status()
+                page_tasks = {
+                    record["name"]: record["completedTasks"]
+                    for record in r.json()
+                    # Reviewer leaderboard doesn't use server-side filter, so we do it here
+                    if str(record["userId"]) in user_page
+                }
+                day_tasks |= page_tasks
+            except Exception:
+                continue
 
         the_series = pd.Series(day_tasks)
         the_series.name = day
