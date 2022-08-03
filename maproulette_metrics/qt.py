@@ -53,7 +53,11 @@ class Worker(QObject):
             # logger.debug("Worker thread successfully exposed to debugger.")
             print("Worker thread successfully exposed to debugger.")
 
-        get_metrics.get_metrics(**self.host.opts)
+        df = get_metrics.get_metrics(**self.host.opts)
+
+        get_metrics.write_excel(df, self.host.opts["output"])
+
+        self.done.emit()
 
 
 class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
@@ -170,6 +174,12 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.worker.moveToThread(self.work_thread)
         self.work_thread.started.connect(self.worker.run)
         self.work_thread.start()
+
+    def finished(self) -> None:
+        self.work_thread.quit()
+        self.work_thread.wait()
+
+        self.worker.deleteLater()
 
 
 def user_split(raw_label: str) -> list[str]:
