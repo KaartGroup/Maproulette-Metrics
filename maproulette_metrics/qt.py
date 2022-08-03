@@ -103,7 +103,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
 
     @property
     def end_date(self) -> date:
-        return self.startDateEdit.date().toPython()
+        return self.endDateEdit.date().toPython()
 
     @property
     def metric_type(self) -> Literal["editor", "qc"]:
@@ -112,7 +112,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
             for radio_button in self.metricTypeGroup.findChildren(QRadioButton)
             if radio_button.isChecked()
         )
-        item_table = {self.editingRadioButton: "editor", self.qcRadioButton: "qc"}
+        item_table = {self.editingRadioButton: "user", self.qcRadioButton: "reviewer"}
         return item_table[checked_item]
 
     @property
