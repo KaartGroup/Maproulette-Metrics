@@ -1,5 +1,6 @@
 import shlex
 import sys
+import time
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Literal
@@ -53,7 +54,9 @@ class Worker(QObject):
             # logger.debug("Worker thread successfully exposed to debugger.")
             print("Worker thread successfully exposed to debugger.")
 
-        df = get_metrics.get_metrics(**self.host.opts)
+        self.getter = get_metrics.MetricGetter()
+
+        df = self.getter.get_metrics(**self.host.opts)
 
         get_metrics.write_excel(df, self.host.opts["output"])
 
@@ -75,6 +78,21 @@ class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
 
     def set_apikey(self) -> None:
         pass
+
+
+class MetricProgressDialog(QProgressDialog):
+    def __init__(self, parent):
+        super.__init__(parent)
+        self.setParent(parent)
+        self.setWindowFlags(Qt.Sheet | Qt.WindowModal)
+
+    def start(self) -> None:
+        self.setMaximum(self.parent.worker.getter.max_iterations + 1)
+        while (self.maximum() - self.value()) > 0:
+            self.setValue(self.parent.worker.getter.cur_iteration)
+            self.setLabelText(f"Making request {self.value() + 1} of {self.maximum()}")
+            time.sleep(1)
+        self.setLabelText("Requests complete, putting it all together...")
 
 
 class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
@@ -167,9 +185,16 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         all_fields_filled = bool(any(self.users) and self.outputLineEdit.text().strip())
         self.runButton.setEnabled(all_fields_filled)
 
+    def progress_bar(self) -> None:
+        progbar = MetricProgressDialog(self)
+        progbar.show()
+        progbar.start()
+
     def run(self) -> None:
-        self.work_thread = QThread(parent=self)
+        self.work_thread = QThread()
         self.worker = Worker(parent=self)
+
+        self.progress_bar()
 
         self.worker.moveToThread(self.work_thread)
         self.work_thread.started.connect(self.worker.run)

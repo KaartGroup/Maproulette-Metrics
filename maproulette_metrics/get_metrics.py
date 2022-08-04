@@ -53,61 +53,54 @@ def get_user_page(
     return {record["name"]: record["completedTasks"] for record in r.json()}
 
 
-def get_metrics(
-    users: Iterable[str],
-    start: date,
-    end: date,
-    metric_type: Literal["editor", "qc"],
-    apikey: str,
-    **kwargs,
-) -> pd.DataFrame:
-    mtype = METRIC_TYPE_TABLE[metric_type]
+class MetricGetter:
+    def __init__(self) -> None:
+        self.cur_iteration = 0
+        self.max_iterations = 0
 
-    ids = get_user_ids_with_caching(users)
+    def get_metrics(
+        self,
+        users: Iterable[str],
+        start: date,
+        end: date,
+        metric_type: Literal["editor", "qc"],
+        apikey: str,
+        **kwargs,
+    ) -> pd.DataFrame:
+        mtype = METRIC_TYPE_TABLE[metric_type]
 
-    df = pd.DataFrame(index=ids.keys())
-    for day in daterange(start, end + timedelta(days=1)):
-        start = end = day
-        if day.weekday() == 0:
-            # Monday, include prior Sunday's stats because of timezone difference
-            start -= timedelta(days=1)
-        elif day.weekday() == 4:
-            # Friday, include following Saturday's stats because of timezone difference
-            end += timedelta(days=1)
-        elif day.weekday() >= 5:
-            # Weekend; stats are included in days before and after, so we don't check these on their own
-            continue
+        ids = get_user_ids_with_caching(users)
 
-        day_tasks = {}
-        for user_page in chunked(ids.values(), PAGE_LIMIT):
-            try:
-                r = requests.get(
-                    BASE_URL.format(mtype=mtype),
-                    headers={"apikey": apikey},
-                    params={
-                        "start": start.isoformat(),
-                        "end": end.isoformat(),
-                        "limit": PAGE_LIMIT,
-                        "userIds": ",".join(str(user_id) for user_id in user_page),
-                    },
-                    verify=False,
-                )
-                r.raise_for_status()
-                page_tasks = {
-                    record["name"]: record["completedTasks"]
-                    for record in r.json()
-                    # Reviewer leaderboard doesn't use server-side filter, so we do it here
-                    if str(record["userId"]) in user_page
-                }
-                day_tasks |= page_tasks
-            except Exception:
+        self.max_iterations = (end - start).days * (len(ids.values()) / PAGE_LIMIT)
+
+        df = pd.DataFrame(index=ids.keys())
+        for day in daterange(start, end + timedelta(days=1)):
+            start = end = day
+            if day.weekday() == 0:
+                # Monday, include prior Sunday's stats because of timezone difference
+                start -= timedelta(days=1)
+            elif day.weekday() == 4:
+                # Friday, include following Saturday's stats because of timezone difference
+                end += timedelta(days=1)
+            elif day.weekday() >= 5:
+                # Weekend; stats are included in days before and after, so we don't check these on their own
                 continue
 
-        the_series = pd.Series(day_tasks)
-        the_series.name = day
-        df = pd.concat([df, the_series], axis=1)
+            day_tasks = {}
+            for user_page in chunked(ids.values(), PAGE_LIMIT):
+                self.cur_iteration += 1
+                try:
+                    day_tasks |= get_user_page(
+                        users=user_page, mtype=mtype, start=start, end=end
+                    )
+                except Exception:
+                    continue
 
-    df.fillna(0, inplace=True)
-    df.sort_index(inplace=True)
+            the_series = pd.Series(day_tasks)
+            the_series.name = day
+            df = pd.concat([df, the_series], axis=1)
 
-    return df
+        df.fillna(0, inplace=True)
+        df.sort_index(inplace=True)
+
+        return df
