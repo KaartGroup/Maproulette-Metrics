@@ -98,7 +98,7 @@ class MetricGetter:
                 except Exception:
                     continue
 
-            the_series = pd.Series(day_tasks)
+            the_series = pd.Series(day_tasks, dtype=int)
             the_series.name = day
             df = pd.concat([df, the_series], axis=1)
 
