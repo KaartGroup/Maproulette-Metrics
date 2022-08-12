@@ -93,7 +93,7 @@ class MetricProgressDialog(QProgressDialog):
     def start(self) -> None:
         for _ in range(20):
             if self.host.worker.getter.max_iterations > 0:
-                self.setMaximum(self.host.worker.getter.max_iterations + 1)
+                self.setMaximum(self.host.worker.getter.max_iterations)
                 break
             time.sleep(0.5)
         else:
@@ -101,9 +101,17 @@ class MetricProgressDialog(QProgressDialog):
         while (self.maximum() - self.value()) > 0:
             QApplication.processEvents()
             self.setValue(self.host.worker.getter.cur_iteration)
-            self.setLabelText(f"Making request {self.value() + 1} of {self.maximum()}")
+            self.setLabelText(
+                f"Making request {self.host.worker.getter.page + 1} of "
+                f"{self.host.worker.getter.page_count} for date {self.host.worker.getter.cur_date.strftime('%b %w')} "
+                f"({self.value() + 1} of {self.maximum() + 1} total)"
+            )
             time.sleep(0.5)
         self.setLabelText("Requests complete, putting it all together...")
+
+    def finished(self) -> None:
+        self.reset()
+        self.close()
 
 
 class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
@@ -205,6 +213,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.work_thread.start()
 
         self.progbar = MetricProgressDialog(self)
+        self.worker.done.connect(self.progbar.finished)
 
         self.progbar.show()
         self.progbar.start()

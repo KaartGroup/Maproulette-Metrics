@@ -58,6 +58,9 @@ class MetricGetter:
     def __init__(self) -> None:
         self.cur_iteration = 0
         self.max_iterations = 0
+        self.cur_date = None
+        self.page = 0
+        self.page_count = 0
 
     def get_metrics(
         self,
@@ -71,12 +74,13 @@ class MetricGetter:
         mtype = METRIC_TYPE_TABLE[metric_type]
 
         ids = get_user_ids_with_caching(users)
-        page_count = ceil(len(ids.values()) / PAGE_LIMIT)
+        self.page_count = ceil(len(ids.values()) / PAGE_LIMIT)
 
-        self.max_iterations = (end - start).days * page_count
+        self.max_iterations = (end - start).days * self.page_count
 
         df = pd.DataFrame(index=ids.keys())
         for day in daterange(start, end + timedelta(days=1)):
+            self.cur_date = day
             start = end = day
             if day.weekday() == 0:
                 # Monday, include prior Sunday's stats because of timezone difference
@@ -89,7 +93,8 @@ class MetricGetter:
                 continue
 
             day_tasks = {}
-            for user_page in chunked(ids.values(), PAGE_LIMIT):
+            for iteration, user_page in enumerate(chunked(ids.values(), PAGE_LIMIT)):
+                self.page = iteration
                 self.cur_iteration += 1
                 try:
                     day_tasks |= get_user_page(
@@ -102,6 +107,7 @@ class MetricGetter:
             the_series.name = day
             df = pd.concat([df, the_series], axis=1)
 
+        self.cur_iteration = self.max_iterations
         df.fillna(0, inplace=True)
         df.sort_index(inplace=True)
 
