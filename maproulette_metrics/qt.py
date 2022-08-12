@@ -40,9 +40,10 @@ else:
 class Worker(QObject):
     done = Signal()
 
-    def __init__(self, parent) -> None:
-        super().__init__(parent)
-        self.host = parent
+    def __init__(self, parent=None, host=None) -> None:
+        super().__init__()
+        self.host = host
+        self.getter = get_metrics.MetricGetter()
 
     def run(self) -> None:
         # For debugging in VSCode only
@@ -53,8 +54,6 @@ class Worker(QObject):
         else:
             # logger.debug("Worker thread successfully exposed to debugger.")
             print("Worker thread successfully exposed to debugger.")
-
-        self.getter = get_metrics.MetricGetter()
 
         df = self.getter.get_metrics(**self.host.opts)
 
@@ -81,17 +80,30 @@ class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
 
 
 class MetricProgressDialog(QProgressDialog):
-    def __init__(self, parent):
-        super.__init__(parent)
-        self.setParent(parent)
+    def __init__(self, host):
+        self.host = host
+        super().__init__("", None, 0, self.host.worker.getter.max_iterations)
+
+        self.setAutoClose(True)
+        self.setAutoReset(False)
+        self.setModal(True)
+        self.setLabelText("Beginning analysis")
         self.setWindowFlags(Qt.Sheet | Qt.WindowModal)
 
     def start(self) -> None:
-        self.setMaximum(self.parent.worker.getter.max_iterations + 1)
+        for _ in range(20):
+            if self.host.worker.getter.max_iterations > 0:
+                self.setMaximum(self.host.worker.getter.max_iterations + 1)
+                break
+            time.sleep(0.5)
+        else:
+            raise RuntimeError
+        self.autoReset(True)
         while (self.maximum() - self.value()) > 0:
-            self.setValue(self.parent.worker.getter.cur_iteration)
+            QApplication.processEvents()
+            self.setValue(self.host.worker.getter.cur_iteration)
             self.setLabelText(f"Making request {self.value() + 1} of {self.maximum()}")
-            time.sleep(1)
+            time.sleep(0.5)
         self.setLabelText("Requests complete, putting it all together...")
 
 
@@ -185,20 +197,18 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         all_fields_filled = bool(any(self.users) and self.outputLineEdit.text().strip())
         self.runButton.setEnabled(all_fields_filled)
 
-    def progress_bar(self) -> None:
-        progbar = MetricProgressDialog(self)
-        progbar.show()
-        progbar.start()
-
     def run(self) -> None:
         self.work_thread = QThread()
-        self.worker = Worker(parent=self)
-
-        self.progress_bar()
+        self.worker = Worker(host=self)
 
         self.worker.moveToThread(self.work_thread)
         self.work_thread.started.connect(self.worker.run)
         self.work_thread.start()
+
+        self.progbar = MetricProgressDialog(self)
+
+        self.progbar.show()
+        self.progbar.start()
 
     def finished(self) -> None:
         self.work_thread.quit()

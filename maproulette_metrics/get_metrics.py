@@ -2,6 +2,7 @@
 
 import argparse
 from datetime import date, timedelta
+from math import ceil
 from pathlib import Path
 from typing import Generator, Iterable, Literal
 
@@ -70,8 +71,9 @@ class MetricGetter:
         mtype = METRIC_TYPE_TABLE[metric_type]
 
         ids = get_user_ids_with_caching(users)
+        page_count = ceil(len(ids.values()) / PAGE_LIMIT)
 
-        self.max_iterations = (end - start).days * (len(ids.values()) / PAGE_LIMIT)
+        self.max_iterations = (end - start).days * page_count
 
         df = pd.DataFrame(index=ids.keys())
         for day in daterange(start, end + timedelta(days=1)):
