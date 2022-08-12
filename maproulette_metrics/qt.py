@@ -98,7 +98,6 @@ class MetricProgressDialog(QProgressDialog):
             time.sleep(0.5)
         else:
             raise RuntimeError
-        self.setAutoReset(True)
         while (self.maximum() - self.value()) > 0:
             QApplication.processEvents()
             self.setValue(self.host.worker.getter.cur_iteration)
