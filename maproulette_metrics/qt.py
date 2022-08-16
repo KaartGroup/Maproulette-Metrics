@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import keyring
+import requests.exceptions
 from PySide6.QtCore import QEvent, QObject, Qt, QThread, Signal
 from PySide6.QtGui import QAction, QIcon, QKeyEvent, QPixmap
 from PySide6.QtWidgets import (
@@ -54,10 +55,13 @@ class Worker(QObject):
         else:
             # logger.debug("Worker thread successfully exposed to debugger.")
             print("Worker thread successfully exposed to debugger.")
-
-        df = self.getter.get_metrics(**self.host.opts)
-
-        get_metrics.write_excel(df, self.host.opts["output"])
+        try:
+            df = self.getter.get_metrics(**self.host.opts)
+        except requests.exceptions.Timeout:
+            # Error dialog should go here
+            pass
+        else:
+            get_metrics.write_excel(df, self.host.opts["output"])
 
         self.done.emit()
 
