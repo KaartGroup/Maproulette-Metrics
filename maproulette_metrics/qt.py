@@ -7,19 +7,13 @@ from typing import Literal
 
 import keyring
 import requests.exceptions
-from PySide6.QtCore import QEvent, QObject, Qt, QThread, Signal
-from PySide6.QtGui import QAction, QIcon, QKeyEvent, QPixmap
+from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtWidgets import (
     QApplication,
-    QCompleter,
     QDialog,
     QFileDialog,
-    QListWidgetItem,
     QMainWindow,
-    QMenu,
-    QMessageBox,
     QProgressDialog,
-    QPushButton,
     QRadioButton,
 )
 
