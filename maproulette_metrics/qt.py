@@ -109,10 +109,6 @@ class MetricProgressDialog(QProgressDialog):
             time.sleep(0.5)
         self.setLabelText("Requests complete, putting it all together...")
 
-    def finished(self) -> None:
-        self.reset()
-        self.close()
-
 
 class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self) -> None:
@@ -213,12 +209,15 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.work_thread.start()
 
         self.progbar = MetricProgressDialog(self)
-        self.worker.done.connect(self.progbar.finished)
+        self.worker.done.connect(self.finished)
 
         self.progbar.show()
         self.progbar.start()
 
     def finished(self) -> None:
+        self.progbar.reset()
+        self.progbar.close()
+
         self.work_thread.quit()
         self.work_thread.wait()
 
