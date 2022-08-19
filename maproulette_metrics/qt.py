@@ -233,8 +233,12 @@ def user_split(raw_label: str) -> list[str]:
     return sorted(splitter)
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     form = MainApp()
     form.show()
     app.exec()
+
+
+if __name__ == "__main__":
+    main()
