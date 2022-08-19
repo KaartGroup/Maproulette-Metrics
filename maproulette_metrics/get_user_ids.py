@@ -40,6 +40,7 @@ def get_single_user_id_from_api(user: str) -> str | None:
         params={"username": user},
         verify=VERIFY_CERT,
     )
+    r.raise_for_status()
     if r.json():
         return r.json()[0]["id"]
 
