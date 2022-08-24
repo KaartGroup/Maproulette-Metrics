@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>561</width>
-    <height>117</height>
+    <height>243</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,6 +23,23 @@
    </item>
    <item>
     <widget class="QLineEdit" name="apiKeyLineEdit"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>&lt;p&gt;Find your API Key by:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt; Logging into your Maproulette account&lt;/li&gt;
+&lt;li&gt;In the top right, click your username&lt;/li&gt;
+&lt;li&gt;Click &amp;quot;User settings&amp;quot;&lt;/li&gt;
+&lt;li&gt;Scroll to the bottom to find your API key&lt;/li&gt;
+&lt;li&gt;Click &amp;quot;Copy&amp;quot;&lt;/li&gt;
+&lt;li&gt;Paste it in the box above&lt;/li&gt;
+
+&lt;/ol&gt;
+</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
