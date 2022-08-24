@@ -2,7 +2,7 @@
 
 import getpass
 
-import keyring
+from .utils import set_api_key
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
             break
         print("No key was pasted.")
 
-    keyring.set_password(service_name="maproulette", username="", password=apikey)
+    set_api_key(apikey)
     print("API key successfully set!")
 
 

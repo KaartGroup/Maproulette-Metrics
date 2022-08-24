@@ -5,14 +5,14 @@ from pathlib import Path
 from typing import Iterable, Mapping
 
 import appdirs
-import keyring
 import requests
 import yaml
 
 from . import BASE_URL, VERIFY_CERT
+from .utils import get_api_key
 
 API_PATH = "api/v2/users/find"
-APIKEY = keyring.get_password("maproulette", "")
+APIKEY = get_api_key()
 CACHE_DIR = Path(appdirs.user_cache_dir("Maproulette Metrics", "Kaart"))
 CACHE_DIR.mkdir(exist_ok=True)
 

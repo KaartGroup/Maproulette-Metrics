@@ -6,7 +6,6 @@ from math import ceil
 from pathlib import Path
 from typing import Generator, Iterable, Literal
 
-import keyring
 import pandas as pd
 import requests
 from more_itertools import chunked

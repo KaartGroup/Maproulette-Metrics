@@ -5,7 +5,6 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Literal
 
-import keyring
 import requests.exceptions
 from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtWidgets import (
@@ -18,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from . import get_metrics, mainwindow, set_api_key_gui
-from .utils import dirname
+from .utils import dirname, get_api_key, set_api_key
 
 try:
     import ptvsd
@@ -116,9 +115,8 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         self.startDateEdit.setDate(date.today() - timedelta(weeks=4))
         self.endDateEdit.setDate(date.today())
 
-        self.apikey = keyring.get_password("maproulette", "")
-        # if not self.apikey:
-        # Prompt user to set apikey
+        self.apikey = get_api_key()
+        self.apikey_dialog = ApiKeyDialog()
 
         self.userAddPushButton.clicked.connect(self.add_user)
         self.userRemovePushButton.clicked.connect(self.remove_user)
