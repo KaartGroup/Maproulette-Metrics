@@ -10,7 +10,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ["main.py"],
+    ["entrypoint.py"],
     pathex=[],
     binaries=[],
     # datas=added_files,
@@ -48,7 +48,7 @@ exe = EXE(
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,
-    # icon="chameleon/resources/chameleon.icns" if is_mac else None,
+    icon=None if is_mac else None,
 )
 if is_mac:
     coll = COLLECT(
@@ -63,7 +63,7 @@ if is_mac:
     app = BUNDLE(
         coll,
         name="Maproulette Metrics.app",
-        # icon="chameleon/resources/chameleon.icns",
+        icon=None,
         bundle_identifier="com.kaart.mr_metrics",
         info_plist={
             "NSHighResolutionCapable": "True",
