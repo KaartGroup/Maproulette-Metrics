@@ -7,9 +7,11 @@ from typing import Literal
 
 import requests.exceptions
 from PySide6.QtCore import QObject, Qt, QThread, Signal
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QMainWindow,
     QProgressDialog,
@@ -64,16 +66,30 @@ class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
         super().__init__()
         self.setupUi(self)
 
+        self.setModal(True)
+        self.setWindowFlags(
+            Qt.Sheet | Qt.WindowModal | Qt.WindowTitleHint | Qt.CustomizeWindowHint
+        )
+
         self.apiKeyLineEdit.editingFinished.connect(self.run_checker)
 
+        self.buttonBox.accepted.connect(self.set_apikey)
+        self.apiKeyLineEdit.textChanged.connect(self.run_checker)
+        self.run_checker()
+
     def run_checker(self) -> None:
-        if self.apiKeyLineEdit.text().strip():
-            self.buttonBox.setEnabled(False)
-        else:
-            self.buttonBox.setEnabled(True)
+        """
+        Checks if anything has been entered and enables or disables the OK button based on the result
+        """
+        has_text = bool(self.apiKeyLineEdit.text().strip())
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(has_text)
 
     def set_apikey(self) -> None:
-        pass
+        """
+        Set an API key if a valid one is given
+        """
+        if apikey := self.apiKeyLineEdit.text().strip():
+            set_api_key(apikey)
 
 
 class MetricProgressDialog(QProgressDialog):
@@ -85,7 +101,9 @@ class MetricProgressDialog(QProgressDialog):
         self.setAutoReset(False)
         self.setModal(True)
         self.setLabelText("Beginning analysis")
-        self.setWindowFlags(Qt.Sheet | Qt.WindowModal)
+        self.setWindowFlags(
+            Qt.Sheet | Qt.WindowModal | Qt.WindowTitleHint | Qt.CustomizeWindowHint
+        )
 
     def start(self) -> None:
         for _ in range(20):
@@ -126,6 +144,31 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
 
         self.run_checker()
 
+        self.actions_setup()
+
+        if not self.apikey:
+            # Prompt user to set apikey
+            self.show_api_key_dialog()
+
+    def actions_setup(self) -> None:
+        """
+        Menu bar customization
+        """
+        # Define QActions for menu bar
+
+        # Exit action for File menu
+        extract_action = QAction("&Exit Maproulette Metrics", self)
+        extract_action.setShortcut("Ctrl+Q")
+        extract_action.setStatusTip("Close application.")
+        extract_action.triggered.connect(self.close)
+        # Filter config
+        config_action = QAction("&Set API Key", self)
+        config_action.triggered.connect(self.show_api_key_dialog)
+        # Declare menu bar settings
+        file_menu = self.menuBar().addMenu("&File")
+        file_menu.addAction(extract_action)
+        file_menu.addAction(config_action)
+
     @property
     def users(self) -> list[str]:
         return self.userListWidget.users
@@ -164,6 +207,9 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
             "apikey": self.apikey,
             "overwrite": True,
         }
+
+    def show_api_key_dialog(self) -> None:
+        self.apikey_dialog.show()
 
     def output_file(self) -> None:
         """
