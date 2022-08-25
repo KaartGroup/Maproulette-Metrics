@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFileDialog,
     QMainWindow,
+    QMessageBox,
     QProgressDialog,
     QRadioButton,
 )
@@ -35,6 +36,7 @@ else:
 
 class Worker(QObject):
     done = Signal()
+    dialog = Signal(str, str, str)
 
     def __init__(self, parent=None, host=None) -> None:
         super().__init__()
@@ -54,9 +56,20 @@ class Worker(QObject):
             df = self.getter.get_metrics(**self.host.opts)
         except requests.exceptions.Timeout:
             # Error dialog should go here
-            pass
+            self.dialog.emit(
+                "Timeout",
+                "A request took too long to finish"
+                " and will probably never complete, so we had to abort",
+                "critical",
+            )
         else:
             get_metrics.write_excel(df, self.host.opts["output"])
+            self.dialog.emit(
+                "Success!",
+                f"<p>{self.host.opts['output'].name} written to "
+                f"<a href='{dirname(self.host.opts['output']).as_uri()}'>{dirname(self.host.opts['output'])}</a></p>",
+                "information",
+            )
 
         self.done.emit()
 
@@ -89,10 +102,14 @@ class ApiKeyDialog(QDialog, set_api_key_gui.Ui_Dialog):
         Set an API key if a valid one is given
         """
         if apikey := self.apiKeyLineEdit.text().strip():
-            set_api_key(apikey)
+            set_api_key(password=apikey)
 
 
 class MetricProgressDialog(QProgressDialog):
+    """
+    Informs the user of the progress of the requests
+    """
+
     def __init__(self, host):
         self.host = host
         super().__init__("", None, 0, self.host.worker.getter.max_iterations)
@@ -149,6 +166,26 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
         if not self.apikey:
             # Prompt user to set apikey
             self.show_api_key_dialog()
+
+    def dialog_display(self, text: str, info: str, icon: str = "information") -> None:
+        """
+        Method to pop-up critical error box
+
+        Parameters
+        ----------
+        text, info : str
+            Optional error box text.
+        icon : str
+            Which icon to use
+        """
+        dialog_box = QMessageBox(self)
+        dialog_box.setText(text)
+        dialog_box.setIcon(
+            QMessageBox.Critical if icon == "critical" else QMessageBox.Information
+        )
+        dialog_box.setInformativeText(info)
+        dialog_box.setTextFormat(Qt.RichText)
+        dialog_box.exec()
 
     def actions_setup(self) -> None:
         """
@@ -252,6 +289,7 @@ class MainApp(QMainWindow, mainwindow.Ui_MainWindow):
 
         self.progbar = MetricProgressDialog(self)
         self.worker.done.connect(self.finished)
+        self.worker.dialog.connect(self.dialog_display)
 
         self.progbar.show()
         self.progbar.start()
