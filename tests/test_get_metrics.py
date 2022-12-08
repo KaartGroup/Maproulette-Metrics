@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from maproulette_metrics import get_metrics
 
 

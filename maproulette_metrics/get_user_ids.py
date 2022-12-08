@@ -23,12 +23,12 @@ def argparsing() -> argparse.Namespace:
     usergroup.add_argument(
         "--userlist",
         type=Path,
-        help="The location of a list of users to query"
+        help="The location of a list of users to query",
     )
     usergroup.add_argument(
         "--user",
         nargs="+",
-        help="A list of users to check, separated by spaces"
+        help="A list of users to check, separated by spaces",
     )
     return parser.parse_args()
 
@@ -63,8 +63,7 @@ def get_user_ids_with_caching(
     Gets user ids from the cache, downloads any needed ids from the cache
     """
     try:
-        with (CACHE_DIR / "user_ids.yaml").open() as f:
-            cached_ids = yaml.safe_load(f.read())
+        cached_ids = yaml.safe_load((CACHE_DIR / "user_ids.yaml").read_text())
     except OSError:
         cached_ids = {}
 
