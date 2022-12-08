@@ -9,10 +9,9 @@ from typing import Generator
 import keyring
 import pandas as pd
 import requests
-import yaml
 from more_itertools import chunked
 
-from maproulette_metrics.get_user_ids import get_user_ids_with_caching
+from .get_user_ids import get_user_ids_with_caching
 
 BASE_URL = os.get("MAPROULETTE_URL", "https://maproulette.org/")
 API_PATH = "/api/v2/data/{mtype}/leaderboard"

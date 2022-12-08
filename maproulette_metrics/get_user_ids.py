@@ -48,8 +48,7 @@ def get_user_ids_from_api(users: Iterable[str]) -> dict[str, str]:
     ids = {}
     for user in users:
         print(f"Getting numeric ID for user {user} from the server...", end="")
-        user_id = get_single_user_id_from_api(user)
-        if user_id:
+        if user_id := get_single_user_id_from_api(user):
             print(f"ID is {user_id}.")
             ids[user] = user_id
         else:
