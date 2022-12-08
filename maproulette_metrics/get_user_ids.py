@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -9,7 +10,8 @@ import keyring
 import requests
 import yaml
 
-BASE_URL = "http://***REMOVED***/api/v2/users/find"
+BASE_URL = os.get("MAPROULETTE_URL", "https://maproulette.org/")
+API_PATH = "api/v2/users/find"
 APIKEY = keyring.get_password("maproulette", "")
 CACHE_DIR = Path(appdirs.user_cache_dir("Maproulette Metrics", "Kaart"))
 CACHE_DIR.mkdir(exist_ok=True)
@@ -33,7 +35,7 @@ def argparsing() -> argparse.Namespace:
 
 def get_single_user_id_from_api(user: str) -> str | None:
     r = requests.get(
-        BASE_URL,
+        BASE_URL + API_PATH,
         headers={"apikey": APIKEY},
         params={"username": user},
         verify=False,
