@@ -9,7 +9,7 @@ import keyring
 import requests
 import yaml
 
-from . import BASE_URL
+from . import BASE_URL, VERIFY_CERT
 
 API_PATH = "api/v2/users/find"
 APIKEY = keyring.get_password("maproulette", "")
@@ -38,7 +38,7 @@ def get_single_user_id_from_api(user: str) -> str | None:
         BASE_URL + API_PATH,
         headers={"apikey": APIKEY},
         params={"username": user},
-        verify=False,
+        verify=VERIFY_CERT,
     )
     if r.json():
         return r.json()[0]["id"]

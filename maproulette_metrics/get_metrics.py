@@ -3,17 +3,17 @@
 import argparse
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Iterable, Literal
 
 import keyring
 import pandas as pd
 import requests
 from more_itertools import chunked
 
-from . import BASE_URL
+from . import BASE_URL, VERIFY_CERT
 from .get_user_ids import get_user_ids_with_caching
 
-API_PATH = "/api/v2/data/{mtype}/leaderboard"
+API_PATH = "api/v2/data/{mtype}/leaderboard"
 APIKEY = keyring.get_password(service_name="maproulette", username="")
 PAGE_LIMIT = 50
 
@@ -48,6 +48,7 @@ def argparsing() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "-t",
         "--metric-type",
         type=str.lower,
         choices=["editor", "qc"],
@@ -92,13 +93,32 @@ def overwrite_confirm(location: Path) -> bool:
     return response.lower().startswith("y")
 
 
+def get_user_page(
+    users: Iterable,
+    mtype: Literal["user", "qc"],
+    start: date,
+    end: date,
+) -> dict:
+    r = requests.get(
+        url=(BASE_URL + API_PATH).format(mtype=mtype),
+        headers={"apikey": APIKEY},
+        params={
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "limit": PAGE_LIMIT,
+            "userIds": ",".join(str(user_id) for user_id in users),
+        },
+        verify=VERIFY_CERT,
+    )
+    r.raise_for_status()
+    return {record["name"]: record["completedTasks"] for record in r.json()}
+
+
 def main():
     opts = argparsing()
     mtype = metric_type[opts.metric_type]
 
-    with opts.users.open() as f:
-        users = f.read().splitlines()
-
+    users = opts.users.read_text().splitlines()
     ids = get_user_ids_with_caching(users)
 
     df = pd.DataFrame(index=ids.keys())
@@ -116,21 +136,7 @@ def main():
 
         day_tasks = {}
         for user_page in chunked(ids.values(), PAGE_LIMIT):
-            r = requests.get(
-                url=(BASE_URL + API_PATH).format(mtype=mtype),
-                headers={"apikey": APIKEY},
-                params={
-                    "start": start.isoformat(),
-                    "end": end.isoformat(),
-                    "limit": PAGE_LIMIT,
-                    "userIds": ",".join(str(user_id) for user_id in user_page),
-                },
-                verify=False,
-            )
-            page_tasks = {
-                record["name"]: record["completedTasks"] for record in r.json()
-            }
-            day_tasks |= page_tasks
+            day_tasks |= get_user_page(user_page, mtype, start, end)
 
         the_series = pd.Series(day_tasks)
         the_series.name = day
