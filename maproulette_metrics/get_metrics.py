@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Generator
@@ -11,11 +10,11 @@ import pandas as pd
 import requests
 from more_itertools import chunked
 
+from . import BASE_URL
 from .get_user_ids import get_user_ids_with_caching
 
-BASE_URL = os.get("MAPROULETTE_URL", "https://maproulette.org/")
 API_PATH = "/api/v2/data/{mtype}/leaderboard"
-APIKEY = keyring.get_password("maproulette", "")
+APIKEY = keyring.get_password(service_name="maproulette", username="")
 PAGE_LIMIT = 50
 
 metric_type = {"editor": "user", "qc": "reviewer"}
@@ -118,7 +117,7 @@ def main():
         day_tasks = {}
         for user_page in chunked(ids.values(), PAGE_LIMIT):
             r = requests.get(
-                (BASE_URL + API_PATH).format(mtype=mtype),
+                url=(BASE_URL + API_PATH).format(mtype=mtype),
                 headers={"apikey": APIKEY},
                 params={
                     "start": start.isoformat(),

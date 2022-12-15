@@ -9,13 +9,15 @@ def main():
     apikey = ""
     while not apikey:
         apikey = getpass.getpass(
-            "Paste your Maproulette API key (your input will be invisible, this is normal): "
+            prompt="Paste your Maproulette API key "
+            "(your input will be invisible, this is normal) "
+            "Use CTRL-C on your keyboard to cancel: "
         ).strip()
         if apikey:
             break
         print("No key was pasted.")
 
-    keyring.set_password("maproulette", "", apikey)
+    keyring.set_password(service_name="maproulette", username="", password=apikey)
     print("API key successfully set!")
 
 

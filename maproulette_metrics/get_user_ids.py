@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -10,7 +9,8 @@ import keyring
 import requests
 import yaml
 
-BASE_URL = os.get("MAPROULETTE_URL", "https://maproulette.org/")
+from . import BASE_URL
+
 API_PATH = "api/v2/users/find"
 APIKEY = keyring.get_password("maproulette", "")
 CACHE_DIR = Path(appdirs.user_cache_dir("Maproulette Metrics", "Kaart"))
