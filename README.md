@@ -5,7 +5,7 @@
 1. Unzip the archive (if you're reading this, you may have already done this)
 2. Open a Terminal window
 3. Run `cd /path/to/unzipped/folder`
-4. Run `pip install .`
+4. Run `pip3 install .`
 
 ## Setting API Key
 
