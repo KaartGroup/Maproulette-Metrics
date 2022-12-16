@@ -22,7 +22,7 @@
 
 ### Numeric IDs
 
-MapRoulette uses a numeric user id for each user; this is unique to each server, so a given editor will have a different ID on the public Maproulette server as on our private server. The first time that the script (on a particular computer) sees a user, it checks the server to get that user's numeric ID, and then stores it. Every time thereafter (on that computer), the script will use its local copy of the user's ID instead of going to the server.
+MapRoulette uses a numeric user id for each user; this is unique to each server, so a given editor will have a different ID on the public Maproulette server as on a private server. The first time that the script (on a particular computer) sees a user, it checks the server to get that user's numeric ID, and then stores it. Every time thereafter (on that computer), the script will use its local copy of the user's ID instead of going to the server.
 
 ### Using the script
 
