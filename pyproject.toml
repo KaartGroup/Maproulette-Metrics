@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "maproulette-metrics"
+version = "0.0.1"
+description = ""
+authors = ["Evan Derickson <evan.derickson@kaart.com>"]
+readme = "README.md"
+packages = [{ include = "maproulette_metrics" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+appdirs = "^1.4.4"
+keyring = "^23.11.0"
+more-itertools = "^9.0.0"
+pandas = "^1.5.2"
+requests = "^2.28.1"
+xlsxwriter = "^3.0.3"
+pyyaml = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.10.0"
+pytest = "^7.2.0"
+
+[tool.poetry.scripts]
+get_maproulette_metrics = "maproulette_metrics.get_metrics:main"
+get_user_ids = "maproulette_metrics.get_user_ids:main"
+set_maproulette_key = "maproulette_metrics.set_api_key:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
