@@ -12,10 +12,10 @@ from more_itertools import chunked
 
 from . import BASE_URL, VERIFY_CERT
 from .get_user_ids import get_user_ids_with_caching
-from .utils import daterange
+from .utils import daterange, get_api_key
 
 API_PATH = "api/v2/data/{mtype}/leaderboard"
-APIKEY = keyring.get_password(service_name="maproulette", username="")
+APIKEY = get_api_key()
 PAGE_LIMIT = 50
 
 METRIC_TYPE_TABLE = {"editor": "user", "qc": "reviewer"}
